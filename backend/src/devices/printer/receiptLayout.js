@@ -35,6 +35,7 @@ export function renderReceiptText(r, width = 32) {
     out.push(lr('お預り', yen(r.deposited)));
     out.push(lr('お釣り', yen(r.change)));
   }
+  // クレジットの承認番号・利用控えは UA-P10NA 本体が発行するため、POSでは印字しない。
   out.push(line());
   out.push(center('ありがとうございました'));
   out.push('');

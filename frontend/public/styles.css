@@ -234,6 +234,21 @@ body {
   outline: 3px solid #111;
 }
 
+/* スピナー（決済処理中） */
+.spinner {
+  width: 72px;
+  height: 72px;
+  border: 8px solid var(--blue-soft);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* 完了 */
 .done .check {
   font-size: 90px;

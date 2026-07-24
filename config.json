@@ -27,17 +27,25 @@
   },
 
   "printer": {
-    "$comment": "driver: 'simulator'（コンソール出力）/ 'escpos-serial' / 'escpos-network'（EPSON TM系など）",
+    "$comment": "POSからのレシート印字は既定OFF。医療の領収書はレセコンが発行し、クレジット利用控えはUA-P10NA本体が発行するため、通常このPOSでの印字は不要。現金の預り/釣銭メモを紙で出したい場合のみ enabled:true にする。",
+    "enabled": false,
     "driver": "simulator",
     "serial": { "path": "/dev/ttyUSB1", "baudRate": 38400 },
     "network": { "host": "192.168.0.31", "port": 9100 }
   },
 
   "cashless": {
-    "$comment": "UA-P10NA は半連動運用。スタッフが端末を操作→承認後に画面で確定する。terminalModel は表示用。",
+    "$comment": "UA-P10NA。mode: 'semi'=半連動(スタッフが端末操作→承認後に画面で確定) / 'auto'=金額連動(選択で端末へ自動送金→承認で自動完了)。",
     "enabled": true,
     "terminalModel": "UA-P10NA",
-    "mode": "semi"
+    "mode": "auto",
+    "link": {
+      "$comment": "driver: 'simulator'(ハード無し) / 'linked-tcp' / 'linked-serial'(実機。連携仕様の後差込が必要)。",
+      "driver": "simulator",
+      "simulateApprovalMs": 2500,
+      "serial": { "path": "/dev/ttyUSB2", "baudRate": 9600, "parity": "none" },
+      "network": { "host": "192.168.0.40", "port": 5000 }
+    }
   },
 
   "qr": {

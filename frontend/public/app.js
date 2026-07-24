@@ -85,6 +85,12 @@ function render() {
     case 'CASHLESS_WAIT':
       html = waitTerminal(s);
       break;
+    case 'CASHLESS_PROCESSING':
+      html = cashlessProcessing(s);
+      break;
+    case 'CASHLESS_DECLINED':
+      html = cashlessDeclined(s);
+      break;
     case 'QR_WAIT':
       html = waitQr(s);
       break;
@@ -206,6 +212,29 @@ function waitTerminal(s) {
     <div class="subtle">${state.config.cashless.terminalModel}</div>`;
 }
 
+function cashlessProcessing(s) {
+  return `
+    <div class="subtle">${t(lang, 'total')}</div>
+    <div class="amount">${yen(s.bill.amount)}</div>
+    <div class="spinner"></div>
+    <div class="headline" style="font-size:24px">💳 ${t(lang, 'processing')}</div>
+    <div class="subtle">${state.config.cashless.terminalModel}</div>`;
+}
+
+function cashlessDeclined(s) {
+  return `
+    <div class="headline" style="font-size:26px;color:var(--warn)">⚠️ ${t(
+      lang,
+      'declined'
+    )}</div>
+    <div class="subtle">${s.cashless?.reason ?? ''}</div>
+    <div class="amount" style="font-size:56px">${yen(s.bill.amount)}</div>
+    <div class="grid">
+      <button class="bigbtn" id="retryBtn">${t(lang, 'retry')}</button>
+      <button class="bigbtn warn" id="cancelBtn">${t(lang, 'cancel')}</button>
+    </div>`;
+}
+
 function waitQr(s) {
   return `
     <div class="subtle">${t(lang, 'total')}</div>
@@ -249,6 +278,8 @@ function bindScreen() {
   if (pay) pay.addEventListener('click', () => send({ type: 'settleCash' }));
   const cancel = document.getElementById('cancelBtn');
   if (cancel) cancel.addEventListener('click', () => send({ type: 'cancel' }));
+  const retry = document.getElementById('retryBtn');
+  if (retry) retry.addEventListener('click', () => send({ type: 'retryCashless' }));
 }
 
 // ---- スタッフ操作バー ----
@@ -264,6 +295,14 @@ function renderStaffbar() {
   }
   if (s.phase === 'CASHLESS_WAIT') {
     actions += `<button id="confirmCashless" class="">端末承認を確認</button>`;
+  }
+  if (s.phase === 'CASHLESS_PROCESSING' && state.config?.simulateCashless) {
+    // デモ用（実機では端末が自動で結果を返す）
+    actions += `<button id="simApprove">［デモ］承認</button>`;
+    actions += `<button id="simDecline" class="ghost">［デモ］否認</button>`;
+  }
+  if (s.phase === 'CASHLESS_DECLINED') {
+    actions += `<button id="staffRetry">再試行</button>`;
   }
   if (s.phase === 'QR_WAIT') {
     actions += `<button id="confirmQr">着金を確認</button>`;
@@ -294,7 +333,12 @@ function deviceLine() {
     .map(([d]) => `${d}円`);
   const lowStr = low.length ? ` / 在庫僅少:${low.join(',')}` : '';
   const pr = devices.printer?.online ? 'プリンタ:正常' : 'プリンタ:未接続';
-  return `${cmState}${lowStr} ／ ${pr}`;
+  let cl = '';
+  if (state?.config?.cashlessMode === 'auto') {
+    const c = devices.cashless;
+    cl = ' ／ 端末:' + (c?.online ? (c.busy ? '処理中' : '正常') : '未接続');
+  }
+  return `${cmState}${lowStr} ／ ${pr}${cl}`;
 }
 
 function wireStaffbar() {
@@ -319,6 +363,9 @@ function wireStaffbar() {
     confirmCashless: { type: 'confirmCashless' },
     confirmQr: { type: 'confirmQr' },
     staffCancel: { type: 'cancel' },
+    staffRetry: { type: 'retryCashless' },
+    simApprove: { type: 'sim.cashless.approve' },
+    simDecline: { type: 'sim.cashless.decline' },
     nextBtn: { type: 'reset' },
   };
   for (const [id, msg] of Object.entries(map)) {

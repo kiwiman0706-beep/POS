@@ -7,6 +7,7 @@ import { WebSocketServer } from 'ws';
 import { makeLogger } from './util/log.js';
 import { createChangeMachine } from './devices/changeMachine/index.js';
 import { createPrinter } from './devices/printer/index.js';
+import { createCashlessTerminal } from './devices/cashless/index.js';
 import { CheckoutSession } from './checkout/CheckoutSession.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -25,8 +26,9 @@ const changeMachine = createChangeMachine(
   config.currency.denominations
 );
 const printer = createPrinter(config.printer);
+const cashless = createCashlessTerminal(config.cashless);
 
-const session = new CheckoutSession({ config, changeMachine, printer });
+const session = new CheckoutSession({ config, changeMachine, printer, cashless });
 
 // ---- 静的配信 ----
 const MIME = {
@@ -83,6 +85,7 @@ function deviceSnapshot() {
     type: 'devices',
     changeMachine: changeMachine.snapshot(),
     printer: printer.snapshot(),
+    cashless: cashless.snapshot(),
   };
 }
 
@@ -90,6 +93,7 @@ function deviceSnapshot() {
 session.on('state', (s) => broadcast({ type: 'state', state: s }));
 session.on('toast', (t) => broadcast({ type: 'toast', ...t }));
 changeMachine.on('status', () => broadcast(deviceSnapshot()));
+cashless.on('status', () => broadcast(deviceSnapshot()));
 
 wss.on('connection', (ws, req) => {
   clients.add(ws);
@@ -126,6 +130,9 @@ function handleMessage(ws, m) {
     case 'confirmCashless':
       session.confirmCashless();
       break;
+    case 'retryCashless':
+      session.retryCashless();
+      break;
     case 'confirmQr':
       session.confirmQr();
       break;
@@ -151,6 +158,14 @@ function handleMessage(ws, m) {
       }
       break;
 
+    // --- デモ専用（シミュレータのみ）: キャッシュレス承認/否認エミュレート ---
+    case 'sim.cashless.approve':
+      if (cashless.approve) cashless.approve();
+      break;
+    case 'sim.cashless.decline':
+      if (cashless.decline) cashless.decline();
+      break;
+
     default:
       log.warn('未知のメッセージ', m.type);
   }
@@ -163,6 +178,9 @@ function handleMessage(ws, m) {
   });
   await printer.connect().catch((e) => {
     log.error('プリンタ接続エラー:', e.message);
+  });
+  await cashless.connect().catch((e) => {
+    log.error('決済端末接続エラー:', e.message);
   });
 
   server.listen(config.port, config.host, () => {
@@ -179,5 +197,6 @@ process.on('SIGINT', async () => {
   log.info('終了します…');
   await changeMachine.disconnect().catch(() => {});
   await printer.disconnect().catch(() => {});
+  await cashless.disconnect().catch(() => {});
   process.exit(0);
 });
