@@ -1,0 +1,21 @@
+{
+  "name": "clinic-semi-self-checkout",
+  "version": "0.1.0",
+  "private": true,
+  "description": "クリニック向けセミセルフレジ（自作）— 自動釣銭機/キャッシュレス/PayPay・レセコン連携・両面タッチパネル",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node backend/src/server.js",
+    "dev": "node --watch backend/src/server.js"
+  },
+  "dependencies": {
+    "ws": "^8.21.1"
+  },
+  "optionalDependencies": {
+    "@serialport/parser-inter-byte-timeout": "^12.0.0",
+    "serialport": "^12.0.0"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "$comment": "運用設定。実機接続はここを書き換えるだけで切替できる。デフォルトはハード不要のシミュレータ。",
+
+  "clinicName": "シスポクリニック",
+  "port": 8080,
+  "host": "0.0.0.0",
+
+  "currency": {
+    "code": "JPY",
+    "denominations": [10000, 5000, 1000, 500, 100, 50, 10, 5, 1]
+  },
+
+  "changeMachine": {
+    "$comment": "driver: 'simulator' でハード無し動作 / 'glory-rt' で実機（要: 上位手順仕様書に基づく実装差込）",
+    "driver": "simulator",
+    "serial": {
+      "path": "/dev/ttyUSB0",
+      "baudRate": 9600,
+      "dataBits": 8,
+      "parity": "even",
+      "stopBits": 1
+    },
+    "initialInventory": {
+      "10000": 30, "5000": 30, "1000": 100, "500": 80,
+      "100": 120, "50": 60, "10": 150, "5": 60, "1": 200
+    }
+  },
+
+  "printer": {
+    "$comment": "driver: 'simulator'（コンソール出力）/ 'escpos-serial' / 'escpos-network'（EPSON TM系など）",
+    "driver": "simulator",
+    "serial": { "path": "/dev/ttyUSB1", "baudRate": 38400 },
+    "network": { "host": "192.168.0.31", "port": 9100 }
+  },
+
+  "cashless": {
+    "$comment": "UA-P10NA は半連動運用。スタッフが端末を操作→承認後に画面で確定する。terminalModel は表示用。",
+    "enabled": true,
+    "terminalModel": "UA-P10NA",
+    "mode": "semi"
+  },
+
+  "qr": {
+    "$comment": "PayPay等の静的QR（札立て）。患者がスキャン→スタッフが着金確認して確定。",
+    "enabled": true,
+    "label": "PayPay"
+  },
+
+  "recept": {
+    "$comment": "レセコン連携。領収書バーコードの金額フォーマットをパーサで吸収する。",
+    "barcode": {
+      "parser": "default",
+      "$parserComment": "default は『数字のみ＝金額(円)』。院内フォーマットに合わせ backend/src/receipt/billParser.js を編集可。"
+    }
+  },
+
+  "ui": {
+    "defaultLanguage": "ja",
+    "languages": ["ja", "en", "zh-CN", "ko"],
+    "autoReturnSeconds": 20
+  }
+}
