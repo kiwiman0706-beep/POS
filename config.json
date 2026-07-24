@@ -35,12 +35,15 @@
   },
 
   "cashless": {
-    "$comment": "UA-P10NA。mode: 'semi'=半連動(スタッフが端末操作→承認後に画面で確定) / 'auto'=金額連動(選択で端末へ自動送金→承認で自動完了)。",
+    "$comment": "UA-P10NA(=シャープ×NTTデータ CAFIS Arch端末)。契約なし・自力で完結する既定は 'semi'。'auto'(金額自動送信)は端末側でCAFIS Arch POS連動の契約/有効化が必要なため既定にしない。",
     "enabled": true,
     "terminalModel": "UA-P10NA",
-    "mode": "auto",
+    "mode": "semi",
+    "showAmountBarcode": true,
+    "barcodeSymbology": "code39",
+    "$barcodeComment": "showAmountBarcode:true でスタッフ画面に会計金額のバーコードを表示。端末がバーコード金額入力に対応していれば、これを読ませるだけで手打ちゼロ（契約不要）。非対応なら大きく表示された金額を見て手入力する。",
     "link": {
-      "$comment": "driver: 'simulator'(ハード無し) / 'linked-tcp' / 'linked-serial'(実機。連携仕様の後差込が必要)。",
+      "$comment": "mode:'auto' 用。driver: 'simulator'(ハード無しデモ) / 'linked-tcp' / 'linked-serial'。実機autoはCAFIS Arch POS連動の契約が前提（docs/キャッシュレス連携.md）。",
       "driver": "simulator",
       "simulateApprovalMs": 2500,
       "serial": { "path": "/dev/ttyUSB2", "baudRate": 9600, "parity": "none" },

@@ -1,4 +1,5 @@
 import { t, I18N } from '/i18n.js';
+import { code39Svg } from '/barcode.js';
 
 // ---- ロール判定（/staff ならスタッフ、それ以外は患者）----
 const ROLE =
@@ -205,11 +206,30 @@ function cashDispense(s) {
 }
 
 function waitTerminal(s) {
+  const model = state.config.cashless.terminalModel;
+  // スタッフ側は「端末入力ガイド」：金額を大きく＋（対応端末なら）金額バーコードを表示。
+  if (ROLE === 'staff') {
+    let bc = '';
+    if (state.config.cashless.showAmountBarcode) {
+      bc = `
+        <div class="bcbox">
+          <div class="bclabel">端末で読み取り（バーコード金額入力に対応時）</div>
+          ${code39Svg(String(s.bill.amount), { height: 84 })}
+          <div class="bcval">${s.bill.amount}</div>
+        </div>`;
+    }
+    return `
+      <div class="subtle">この金額を ${model} に入力（またはバーコード読取）</div>
+      <div class="amount">${yen(s.bill.amount)}</div>
+      ${bc}
+      <div class="subtle" style="font-size:14px">決済が完了したら下の「端末承認を確認」を押してください</div>`;
+  }
+  // 患者側
   return `
     <div class="subtle">${t(lang, 'total')}</div>
     <div class="amount">${yen(s.bill.amount)}</div>
     <div class="headline" style="font-size:26px">💳 ${t(lang, 'useTerminal')}</div>
-    <div class="subtle">${state.config.cashless.terminalModel}</div>`;
+    <div class="subtle">${model}</div>`;
 }
 
 function cashlessProcessing(s) {
