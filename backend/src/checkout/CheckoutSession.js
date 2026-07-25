@@ -141,6 +141,12 @@ export class CheckoutSession extends EventEmitter {
     this.state.phase = 'BILL_READY';
     this.state.message = `お会計 ${yen(parsed.amount)} です。お支払方法をお選びください`;
     this._touch();
+
+    // 現金のみ運用（キャッシュレス/QRを無効）なら、支払方法選択を省略して
+    // ただちに入金受付へ。スキャン→即「現金を投入してください」になる。
+    if (!this.config.cashless?.enabled && !this.config.qr?.enabled) {
+      this.selectMethod('cash');
+    }
   }
 
   /** 支払方法選択 */

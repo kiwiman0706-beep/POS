@@ -35,8 +35,8 @@
   },
 
   "cashless": {
-    "$comment": "UA-P10NA(=シャープ×NTTデータ CAFIS Arch端末)。契約なし・自力で完結する既定は 'semi'。'auto'(金額自動送信)は端末側でCAFIS Arch POS連動の契約/有効化が必要なため既定にしない。",
-    "enabled": true,
+    "$comment": "既定は無効(=POSはキャッシュレスに関与しない)。UA-P10NAは単体で完結して運用するため、POSは現金＋自動釣銭機に専念する。POSでガイド/連動をしたくなった場合のみ enabled:true に戻す(その場合 mode 等は docs/キャッシュレス連携.md 参照)。",
+    "enabled": false,
     "terminalModel": "UA-P10NA",
     "mode": "semi",
     "showAmountBarcode": true,
@@ -52,8 +52,8 @@
   },
 
   "qr": {
-    "$comment": "PayPay等の静的QR（札立て）。患者がスキャン→スタッフが着金確認して確定。",
-    "enabled": true,
+    "$comment": "既定は無効(=POSはQRに関与しない)。PayPay等は静的QRの札立てで独立運用(患者がスキャン→スタッフが着金目視)。POSで扱いたい場合のみ enabled:true。",
+    "enabled": false,
     "label": "PayPay"
   },
 
